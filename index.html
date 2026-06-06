@@ -63,6 +63,18 @@
   .topbar .pulse{display:inline-flex;align-items:center;gap:7px;color:var(--seal);}
   .topbar .pulse::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--seal);animation:blink 1.8s infinite;}
   @keyframes blink{0%,100%{opacity:1;}50%{opacity:.25;}}
+  .topbar .listening{
+    display:inline-flex;align-items:center;gap:8px;
+    color:var(--sage);text-decoration:none;
+    border:1px solid rgba(105,116,79,.5);
+    padding:3px 10px;border-radius:2px;
+    transition:background .25s,color .25s,border-color .25s;
+  }
+  .topbar .listening:hover{background:var(--sage);color:var(--paper);border-color:var(--sage);}
+  .topbar .listening .lm{font-size:9px;color:var(--tea);}
+  .topbar .listening:hover .lm{color:var(--paper);}
+  .topbar .listening .zh-inline{font-family:var(--serif);letter-spacing:.05em;font-size:11px;opacity:.85;}
+  .topbar .listening #layer-count{font-variant-numeric:tabular-nums;}
 
   /* ============ hero ============ */
   .hero{padding:9vh 0 7vh;position:relative;}
@@ -187,7 +199,12 @@
     <span class="brand">SOFT · Social Fund Trust</span>
     <div class="tag">
       <span>67th World Opportunity Fair · 第 67 届世界机遇展</span>
-      <span class="pulse">Now Open · 互动开放中</span>
+      <span class="pulse">Booth Open · 展台开放中</span>
+      <a class="listening" id="listening-link" href="https://soilab.onrender.com/" target="_blank" rel="noopener">
+        <span class="lm" aria-hidden="true">▶</span>
+        Listening · #<span id="layer-count">—</span>
+        <span class="zh-inline">配方层</span>
+      </a>
     </div>
   </div>
 
@@ -360,6 +377,24 @@
   <footer>SOFT · Social Fund Trust — Eco-Food Lab · 67th World Opportunity Fair · 第 67 届世界机遇展</footer>
 
 <script>
+  // soilab Mood Recipe — 当前配方层数轮询（接口待 soilab 暴露后填路径/字段）
+  (function pollSoilabLayers(){
+    const el = document.getElementById('layer-count');
+    if (!el) return;
+    const ENDPOINT = 'https://soilab.onrender.com/api/now'; // TODO: 等 soilab 确认实际路径
+    const tick = async () => {
+      try{
+        const r = await fetch(ENDPOINT, {cache:'no-store', signal: AbortSignal.timeout(4500)});
+        if(!r.ok) return;
+        const d = await r.json();
+        const n = d.layers ?? d.layer_count ?? d.count ?? d.n;
+        if(typeof n === 'number') el.textContent = n;
+      }catch(_){} // 接口未通时静默保持 "—"
+    };
+    tick();
+    setInterval(tick, 30000);
+  })();
+
   const io=new IntersectionObserver((entries)=>{
     entries.forEach((e)=>{
       if(e.isIntersecting){
